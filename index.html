@@ -267,13 +267,13 @@ h1 {
     </div>
 
     <div class="btn-group">
-        <a href="YOUR_WHATSAPP_LINK" class="btn">Join WhatsApp</a>
-        <a href="https://ff.garena.com/en/guild/?id=YOUR_GUILD_ID" class="btn">Search In Game</a>
+        <a href="#" id="whatsapp-btn" class="btn">Join WhatsApp</a>
+        <a href="#" id="guild-btn" class="btn">Search In Game</a>
     </div>
 
 <div class="footer">
     <p>© 2026 VOID iOS Guild | Recruitment Open | Not Affiliated with Garena</p>
-    <p style="font-size: 12px; margin-top: 10px;">Edit data.json to update info</p>
+    <p style="font-size: 12px; margin-top: 10px;">Edit data.json to update everything</p>
 </div>
 </div>
 
@@ -295,6 +295,9 @@ async function loadGuildData() {
         const statusEl = document.getElementById('status');
         statusEl.textContent = data.status;
         statusEl.className = `status ${data.status.toLowerCase()}`;
+        
+        document.getElementById('whatsapp-btn').href = data.whatsapp_link;
+        document.getElementById('guild-btn').href = data.guild_link;
         
     } catch (error) {
         console.log('Error loading data.json:', error);
