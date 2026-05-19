@@ -368,6 +368,14 @@ section {
     box-shadow: 0 0 20px var(--main-color);
 }
 
+.success-msg {
+    display: none;
+    color: #00ff88;
+    text-align: center;
+    margin-top: 10px;
+    font-weight: 600;
+}
+
 /* Mobile */
 @media(max-width: 768px) {
     .menu { display: none; flex-direction: column; background: #0a0a0a; position: absolute; top: 60px; right: 20px; padding: 20px; border: 1px solid var(--main-color); }
@@ -381,13 +389,11 @@ section {
 </style>
 </head>
 <body>
-<!-- MOVING BACKGROUND -->
 <div class="bg-animation">
     <span></span><span></span><span></span><span></span><span></span>
     <span></span><span></span><span></span><span></span><span></span>
 </div>
 
-<!-- NAV -->
 <nav>
     <h3>VOID iOS</h3>
     <div class="menu" id="menu">
@@ -412,7 +418,6 @@ section {
         <span id="status" class="status">Loading</span>
     </div>
 
-    <!-- ABOUT SECTION -->
     <section id="about" class="card">
         <h2>About Free Fire</h2>
         <p id="about-text">Loading...</p>
@@ -476,7 +481,6 @@ section {
         </div>
     </div>
 
-    <!-- CONTACT SECTION -->
     <section id="contact" class="card">
         <h2>Contact Us</h2>
         <p><b>WhatsApp:</b> <a id="contact-whatsapp" href="#" style="color:var(--main-color);">Join Group</a></p>
@@ -484,7 +488,6 @@ section {
         <p><b>In-Game:</b> <span id="contact-ingame">Loading...</span></p>
     </section>
 
-    <!-- BUTTONS - LINKS COME FROM JSON -->
     <div class="btn-group">
         <a id="btn-whatsapp" href="#" class="btn">Join WhatsApp</a>
         <a id="btn-share" href="#" class="btn">Search In Game</a>
@@ -496,7 +499,6 @@ section {
     </div>
 </div>
 
-<!-- FLOATING MESSAGE BOX -->
 <div class="contact-float" id="contact-float">
     <button class="chat-btn" onclick="toggleChat()">💬</button>
     <div class="chat-box" id="chat-box">
@@ -505,12 +507,9 @@ section {
             <input type="text" name="name" placeholder="Your Name" required>
             <input type="email" name="email" placeholder="Your Email" required>
             <textarea name="message" placeholder="Drop your message..." rows="4" required></textarea>
-            
             <input type="hidden" name="_subject" value="New Message from VOID iOS Site">
-            <input type="hidden" name="_captcha" value="false">
-            <input type="hidden" name="_template" value="table">
-            
             <button type="submit">Send</button>
+            <div class="success-msg" id="success-msg">Message sent successfully!</div>
         </form>
     </div>
 </div>
@@ -538,7 +537,6 @@ function setColor(color) {
     localStorage.setItem('guildColor', color);
 }
 
-// Load saved color on page load
 window.onload = function() {
     const savedColor = localStorage.getItem('guildColor');
     if (savedColor) {
@@ -549,29 +547,32 @@ window.onload = function() {
 async function loadGuildData() {
     try {
         const response = await fetch('data.json');
+        if (!response.ok) throw new Error('data.json not found');
         const data = await response.json();
         
-        document.getElementById('guild-name').textContent = data.name;
-        document.getElementById('guild-id').textContent = `ID: ${data.id}`;
-        document.getElementById('guild-level').textContent = `Level: ${data.level}`;
-        document.getElementById('guild-members').textContent = `Members: ${data.members}`;
+        document.getElementById('guild-name').textContent = data.name || "VOID iOS";
+        document.getElementById('guild-id').textContent = `ID: ${data.id || 'N/A'}`;
+        document.getElementById('guild-level').textContent = `Level: ${data.level || 'N/A'}`;
+        document.getElementById('guild-members').textContent = `Members: ${data.members || 'N/A'}`;
         
         if (data.logo) {
             document.getElementById('logo').src = data.logo;
         }
         
         const statusEl = document.getElementById('status');
-        statusEl.textContent = data.status;
-        statusEl.className = `status ${data.status.toLowerCase()}`;
+        statusEl.textContent = data.status || "Closed";
+        statusEl.className = `status ${data.status ? data.status.toLowerCase() : 'closed'}`;
         
         if (data.about) {
             document.getElementById('about-text').innerHTML = data.about;
+        } else {
+            document.getElementById('about-text').innerHTML = "Welcome to VOID iOS guild. Edit data.json to update this text.";
         }
         
         if (data.contact) {
-            document.getElementById('contact-whatsapp').href = data.contact.whatsapp;
-            document.getElementById('contact-discord').textContent = data.contact.discord;
-            document.getElementById('contact-ingame').textContent = data.contact.in_game;
+            document.getElementById('contact-whatsapp').href = data.contact.whatsapp || "#";
+            document.getElementById('contact-discord').textContent = data.contact.discord || "N/A";
+            document.getElementById('contact-ingame').textContent = data.contact.in_game || "N/A";
         }
 
         if (data.whatsapp_link) {
@@ -581,16 +582,47 @@ async function loadGuildData() {
             document.getElementById('btn-share').href = data.share_link;
         }
 
-        // Set Gmail from JSON for contact form
-        if (data.contact_email) {
-            document.getElementById('contact-form').action = "https://formsubmit.co/" + data.contact_email;
+        if (data.formspree_id) {
+            document.getElementById('contact-form').action = "https://formspree.io/f/" + data.formspree_id;
         }
         
     } catch (error) {
         console.log('Error loading data.json:', error);
+        // Fallback content so it no dey stuck on loading
         document.getElementById('guild-name').textContent = "VOID iOS";
+        document.getElementById('about-text').innerHTML = "Edit data.json to update this text.";
+        document.getElementById('guild-id').textContent = "ID: N/A";
+        document.getElementById('guild-level').textContent = "Level: N/A";
+        document.getElementById('guild-members').textContent = "Members: N/A";
+        document.getElementById('contact-discord').textContent = "N/A";
+        document.getElementById('contact-ingame').textContent = "N/A";
     }
 }
+
+document.getElementById('contact-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' }
+    }).then(response => {
+        if (response.ok) {
+            document.getElementById('success-msg').style.display = 'block';
+            form.reset();
+            setTimeout(() => {
+                document.getElementById('success-msg').style.display = 'none';
+                document.getElementById('chat-box').classList.remove('active');
+            }, 2000);
+        } else {
+            alert('Error sending message. Try again.');
+        }
+    }).catch(error => {
+        alert('Error sending message. Try again.');
+    });
+});
 
 loadGuildData();
 </script>
